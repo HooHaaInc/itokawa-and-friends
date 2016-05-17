@@ -183,6 +183,9 @@ void calc_mat(float m[16]){
 	float w = (xmax-xmin);
 	float h = (ymax-ymin);
 	float sx = width/w, sy = height/h, dx = 0, dy = 0;
+	if(sx < sy) sy = sx;
+	else sx = sy;
+	
 	/*if(h > w){
 		sx = sy*w/h;
 		dx = width*(1-h/w)/2;
@@ -190,7 +193,10 @@ void calc_mat(float m[16]){
 		sy = sx*h/w;
 		dy = height*(1-w/h)/2;
 	}
-	mat_trans(m, dx, dy, 0);*/
+	*/
+	
+	float dx = (width-(xmax/sx))/2, dy = ((ymax/sy)-height)/2;
+	mat_trans(m, dx, dy, 0);
 	mat_scale(m, sx, sy, 1);
 	mat_trans(m, -xmin, -ymin, 0);
 	for(int i=0; i<4; ++i)
