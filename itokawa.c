@@ -195,7 +195,7 @@ void calc_mat(float m[16]){
 	}
 	*/
 	
-	float dx = (width-(xmax/sx))/2, dy = ((ymax/sy)-height)/2;
+	float dx = (width-(xmax*sx))/2, dy = ((ymax*sy)-height)/2;
 	mat_trans(m, dx, dy, 0);
 	mat_scale(m, sx, sy, 1);
 	mat_trans(m, -xmin, -ymin, 0);
