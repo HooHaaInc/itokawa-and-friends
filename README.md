@@ -1,4 +1,4 @@
-# itokawa-and-friends
+# soy puto :c
 
 compile:
 
