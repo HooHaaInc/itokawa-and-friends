@@ -35,7 +35,7 @@ void setup();
 void display();
 void draw_pixel(float*, int, int, float, float, float);
 
-int width = 480, height = 480, N=49152;
+int width = 2, height = 2, N=49152;
 struct Trianglew triangles[49152];
 
 int main(int argc, char *argv[])
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	abrir_archivo_y_procesa(triangles);
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
-	glutInitWindowSize(width,height);
+	glutInitWindowSize(600,600);
 	glutCreateWindow("Itokawa");
 
 	setup();
@@ -54,17 +54,19 @@ int main(int argc, char *argv[])
 
 void display(){
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glColor3f(0.0f, 0.0f, 0.0f);
 	//glRectf(-0.75f,0.75f, 0.75f, -0.75f);
 	
 	float *a = (float*)malloc(sizeof(float)*height*width*3);
 
 	float m[16];
 	calc_mat(m);
+	glBegin(GL_LINES);
+	glColor3f(1.0f, 1.0f, 1.0f);
 	for(int i=0; i<N; ++i){
 		proyectar(m, a, triangles[i]);
 	}
-	glDrawPixels(width, height, GL_RGB, GL_FLOAT, a);
+	glEnd();
+	//glDrawPixels(width, height, GL_RGB, GL_FLOAT, a);
 	glutSwapBuffers();
 }
 
@@ -182,20 +184,11 @@ void calc_mat(float m[16]){
 	calc_viewport(&xmin, &ymin, &xmax, &ymax);
 	float w = (xmax-xmin);
 	float h = (ymax-ymin);
-	float sx = width/w, sy = height/h, dx = 0, dy = 0;
+	float sx = width/w, sy = height/h;
 	if(sx < sy) sy = sx;
 	else sx = sy;
 	
-	/*if(h > w){
-		sx = sy*w/h;
-		dx = width*(1-h/w)/2;
-	} else {
-		sy = sx*h/w;
-		dy = height*(1-w/h)/2;
-	}
-	*/
-	
-	float dx = (width-(xmax*sx))/2, dy = ((ymax*sy)-height)/2;
+	float dx = (width-(w*sx))/2-1, dy = -((h*sy)-height)/2-1;
 	mat_trans(m, dx, dy, 0);
 	mat_scale(m, sx, sy, 1);
 	mat_trans(m, -xmin, -ymin, 0);
@@ -209,12 +202,15 @@ void proyectar(float m[16], float a[], struct Trianglew t){
 	mat_mul(m, t.p1, 1, r1);
 	mat_mul(m, t.p2, 1, r2);
 	mat_mul(m, t.p3, 1, r3);
-	draw_pixel(a, r1[0], r1[1], 1,1,1);
-	draw_pixel(a, r2[0], r2[1], 1,1,1);
-	draw_pixel(a, r3[0], r3[1], 1,1,1);
-	//dibujar_linea(a, (int)r1[0], (int)r1[1], (int)r2[0], (int)r2[1]);
-	//dibujar_linea(a, (int)r1[0], (int)r1[1], (int)r3[0], (int)r3[1]);
-	//dibujar_linea(a, (int)r3[0], (int)r3[1], (int)r2[0], (int)r2[1]);
+	//draw_pixel(a, r1[0], r1[1], 1,1,1);
+	//draw_pixel(a, r2[0], r2[1], 1,1,1);
+	//draw_pixel(a, r3[0], r3[1], 1,1,1);
+	glVertex3f(r1[0], r1[1], 0);
+	glVertex3f(r2[0], r2[1], 0);
+	glVertex3f(r1[0], r1[1], 0);
+	glVertex3f(r3[0], r3[1], 0);
+	glVertex3f(r3[0], r3[1], 0);
+	glVertex3f(r2[0], r2[1], 0);
 }
 
 void dibujar_linea(float a[], int _x1, int _y1, int _x2, int _y2){
@@ -231,14 +227,18 @@ void dibujar_linea(float a[], int _x1, int _y1, int _x2, int _y2){
 		//glutSwapBuffers();
 		return;
 	}
-	float m = (float)(_y2-_y1)/(_x2-_x1);
+	float m = ((float)(_y2-_y1))/(_x2-_x1);
 	if(m < -1)
 		pendiente_menor_menos1(a, _x1, _y1, _x2, _y2);
-	else if (m < 0)
+	else if(m < 0)
 		pendiente_entre_menos1y0(a, _x1, _y1, _x2, _y2);
 	else if (m < 1)
 		pendiente_entre_1y0(a, _x1, _y1, _x2, _y2);
-	else pendiente_mayor_1(a, _x1, _y1, _x2, _y2);
+	else if (m >=1) pendiente_mayor_1(a, _x1, _y1, _x2, _y2);
+	//{
+	//	draw_pixel(a, _x1, _y1, 1,1,1);
+	//	draw_pixel(a, _x2, _y2, 1,1,1);
+	//}
 }
 
 void pendiente_menor_menos1(float *a, int x1, int y1, int x2, int y2){
@@ -252,7 +252,6 @@ void pendiente_menor_menos1(float *a, int x1, int y1, int x2, int y2){
 		if(dy*(x+0.5f)-dx*(y-1)+bdx > 0)
 			draw_pixel(a, ++x, --y, 1, 1, 1);
 		else draw_pixel(a, x, --y, 1, 1, 1);
-		
 	}
 }
 
@@ -303,11 +302,11 @@ void pendiente_mayor_1(float *a, int x1, int y1, int x2, int y2){
 }
 
 void setup(){
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void draw_pixel(float *a, int x, int y, float r, float g, float b){
-	printf("(%d, %d)\n", x, y);
+	//printf("(%d, %d)\n", x, y);
 	int p = y*width*3+x*3;
 	a[p] = r;
 	a[p+1] = g;
