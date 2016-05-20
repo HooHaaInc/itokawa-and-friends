@@ -31,8 +31,10 @@ void mat_rotz(float[16], float);
 void mat_rotz2(float[16], float, float);
 void mat_scale(float[16], float, float, float);
 void mat_orto(float[16], int plano);
+void mat_iso(float mat[16], float a, float b, float c);
 void proyectar(float[16], struct Trianglew, int);
 void calc_mat(float [16], int);
+void isometrica();
 void abrir_archivo_y_procesa(struct Trianglew[]);
 void setup();
 void display();
@@ -74,6 +76,7 @@ void display(){
 			proyectar(m, triangles[i],j);
 		}
 	}
+	isometrica();
 	//Cerramos la interfaz de openGL
 	glEnd();
 	//Swapeamos los buffers ((8
@@ -180,6 +183,16 @@ void mat_orto(float mat[16], int plano){
 	mat_mul(mat, t, 4, mat);
 }
 
+void mat_iso(float mat[16], float a, float b, float c){
+	float i[16] = {
+		c/sqrt(a*a+c*c), 0, -a/sqrt(a*a+c*c), 0,
+		-a*b/sqrt((a*a+c*c)*(a*a+b*b+c*c)), sqrt((a*a+c*c)/(a*a+b*b+c*c)), -c*b/sqrt((a*a+c*c)*(a*a+b*b+c*c)), 0,
+		0,0,0,0,
+		0,0,0,1
+	};
+	mat_mul(mat, i, 4, mat);
+}
+
 //Funcion que calcula viewport, lo cual nos permite deducir la razon de escalamiento entre la pantalla y el objeto
 void calc_viewport(float *xmin, float *ymin, float *xmax, float *ymax,int plano){
     //Definimos indices para determinar en que plano buscaremos los puntos
@@ -220,8 +233,6 @@ void calc_viewport(float *xmin, float *ymin, float *xmax, float *ymax,int plano)
 void calc_mat(float m[16],int plano){
     //definimos la matriz M como la identidad
 	mat_id(m);
-	//Definimos el plano a proyectar. Variable plano = [0,2] donde 0 = xy, 1 = xz, 2 = yz
-	
     //Definimos las variables maximas y minimas que cubre nuestro objeto.
 	float amin, bmin, amax, bmax;
 	//Calculamos sus valores
@@ -262,34 +273,74 @@ void proyectar(float m[16], struct Trianglew t, int plano){
 	//Dibujamos los puntos, usando la variable plano para decidir sobre cual plano proyectar
 
 
-	///TODO: Verificar, No se si esto este correcto, solo asumi que teniamos que cambiar sobre plano dibujamos,
-	///aun se dibujan los mismos puntos que en el caso del plano xy
-	switch (0){
-        case 0: // Plano xy
-            glVertex3f(r1[0], r1[1], 0);
-            glVertex3f(r2[0], r2[1], 0);
-            glVertex3f(r1[0], r1[1], 0);
-            glVertex3f(r3[0], r3[1], 0);
-            glVertex3f(r3[0], r3[1], 0);
-            glVertex3f(r2[0], r2[1], 0);
-            break;
-        case 1: //Plano xz
-            glVertex3f(r1[0], 0, r1[2]);
-            glVertex3f(r2[0], 0, r2[2]);
-            glVertex3f(r1[0], 0, r1[2]);
-            glVertex3f(r3[0], 0, r3[2]);
-            glVertex3f(r3[0], 0, r3[2]);
-            glVertex3f(r2[0], 0, r2[2]);
-            break;
-        case 2: //Plano yz
-            glVertex3f(0, r1[1], r1[2]);
-            glVertex3f(0, r2[1], r2[2]);
-            glVertex3f(0, r1[1], r1[2]);
-            glVertex3f(0, r3[1], r3[2]);
-            glVertex3f(0, r3[1], r3[2]);
-            glVertex3f(0, r2[1], r2[2]);
-            break;
+	glVertex3f(r1[0], r1[1], 0);
+    glVertex3f(r2[0], r2[1], 0);
+    glVertex3f(r2[0], r2[1], 0);
+    glVertex3f(r3[0], r3[1], 0);
+    glVertex3f(r3[0], r3[1], 0);
+	glVertex3f(r1[0], r1[1], 0);
+}
+
+void isometrica(){
+	float m[16] = {};
+	mat_id(m);
+	mat_iso(m, 1,1,1);
+	float puntos[N*12];
+	float xmin, ymin, xmax, ymax;
+	for (int i = 0; i < N; ++i){
+		mat_mul(m, triangles[i].p1, 1, puntos+i*12);
+		xmin = puntos[i*12] < xmin ? puntos[i*12] : xmin;
+		xmax = puntos[i*12] > xmax ? puntos[i*12] : xmax;
+		ymin = puntos[i*12+1] < ymin ? puntos[i*12+1] : ymin;
+		ymax = puntos[i*12+1] > ymax ? puntos[i*12+1] : ymax;
+		mat_mul(m, triangles[i].p2, 1, puntos+i*12+4);
+		xmin = puntos[i*4] < xmin ? puntos[i*4] : xmin;
+		xmax = puntos[i*12+4] > xmax ? puntos[i*12+4] : xmax;
+		ymin = puntos[i*12+4+1] < ymin ? puntos[i*12+4+1] : ymin;
+		ymax = puntos[i*12+4+1] > ymax ? puntos[i*12+4+1] : ymax;
+		mat_mul(m, triangles[i].p3, 1, puntos+i*12+8);
+		xmin = puntos[i*12+8] < xmin ? puntos[i*12+8] : xmin;
+		xmax = puntos[i*12+8] > xmax ? puntos[i*12+8] : xmax;
+		ymin = puntos[i*12+8+1] < ymin ? puntos[i*12+8+1] : ymin;
+		ymax = puntos[i*12+8+1] > ymax ? puntos[i*12+8+1] : ymax;
 	}
+	mat_id(m);
+	float w = (xmax-xmin);
+	float h = (ymax-ymin);
+	//Calculamos el factor de escalamiento para la transformacion windows a viewport
+    //width = height = 1
+	float sa = 1/w, sb = 1/h;
+	//Se comparan las escalas en 'a' y 'b' y se elije la menor, para que el objeto conserve su escala original
+	if(sa < sb) sb = sa;
+	else sa = sb;
+    //Calculamos las distancias necesarias para que el objeto quede centrado
+	float da = (1-(w*sa))/2, db = -((h*sb)-1)/2-1;
+	//Calculamos la matriz de transformacion compuesta
+	mat_trans(m, da, db,0);
+	mat_scale(m, sa, sb, 1);
+	mat_trans(m, -xmin, -ymin, 0);
+
+	for(int i=0; i<4; ++i)
+		printf("[%f,%f,%f,%f]\n", m[4*i], m[4*i+1], m[4*i+2], m[4*i+3]);
+
+
+	float r1[4], r2[4], r3[4];
+	for(int i=0; i<N; ++i){
+		mat_mul(m, puntos+i*12, 1, r1);
+		mat_mul(m, puntos+i*12+4, 1, r2);
+		mat_mul(m, puntos+i*12+8, 1, r3);
+
+		//Dibujamos los puntos, usando la variable plano para decidir sobre cual plano proyectar
+
+
+		glVertex3f(r1[0], r1[1], 0);
+	    glVertex3f(r2[0], r2[1], 0);
+	    glVertex3f(r2[0], r2[1], 0);
+	    glVertex3f(r3[0], r3[1], 0);
+	    glVertex3f(r3[0], r3[1], 0);
+		glVertex3f(r1[0], r1[1], 0);
+	}
+
 }
 
 //Preparar la interfaz de openGL
