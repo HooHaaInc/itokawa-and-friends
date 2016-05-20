@@ -38,18 +38,19 @@ void mat_iso(float mat[16], float a, float b, float c);
 void proyectar(float[16], struct Trianglew, int);
 void calc_mat(float [16], int);
 void isometrica();
-void abrir_archivo_y_procesa(struct Trianglew[]);
+void abrir_archivo_y_procesa_puntos(struct Trianglew[]);
+void abrir_archivo_y_procesa_caras(struct Trianglew[]);
 void setup();
 void display();
 void draw_pixel(float*, int, int, float, float, float);
 //Numero de triangulos en el archivo itokawa
-int N=49152;
+int N=10000;
 struct Trianglew triangles[49152];
-Point points[7381];
+struct Point points[7381];
 //Main
 int main(int argc, char *argv[])
 {
-	abrir_archivo_y_procesa(triangles);
+	abrir_archivo_y_procesa_caras(triangles);
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowSize(600,600);
@@ -400,41 +401,45 @@ void abrir_archivo_y_procesa_caras(struct Trianglew triangles[]){
 	float floatBuffer;
 	char charBuffer;
 	int intBuffer;
-	float puntos[20005];
+	struct Point puntos[20002];
 	//Abrimos el archivo con los puntos
 	file = fopen("OBJETOS-3D/QueSoy1.obj", "r");
 	int i=0;
 	//Leemos todo el archivo
-	while(fscanf(file, "%c", &charBuffer) != 'v'){
+	while(fscanf(file, "%c", &charBuffer) != 'v' && i<10000){
         //Obtenemos las tres coordenadas del vertice
 
-		fscanf(file, "%f", &floatBuff);
-		puntos[i].x = buff;
-		fscanf(file, "%f", &floatBuff);
-		puntos[i].y = buff;
-		fscanf(file, "%f", &floatBuff);
-		puntos[i].z = buff;
+		fscanf(file, "%f", &floatBuffer);
+		puntos[i].x = floatBuffer;
+		fscanf(file, "%f", &floatBuffer);
+		puntos[i].y = floatBuffer;
+		fscanf(file, "%f", &floatBuffer);
+		puntos[i].z = floatBuffer;
+		printf("[%f,%f,%f], %f\n", puntos[i].x, puntos[i].y, puntos[i].z, i);
 		++i;
 	}
 	i = 0;
 	//Asociamos los vertices para formar un triangulo
-	while(fscan(file,"%c",&charBuffer) != EOF){
-		fscan(file,"%d",&intBuffer)
-		triangles.p1[0] = points[intBuffer].x;
-		triangles.p1[1] = points[intBuffer].y;
-		triangles.p1[2] = points[intBuffer].z;
+	do{
+		//fscanf(file,"%d",&intBuffer);
+		triangles[i].p1[0] = puntos[i].x;
+		triangles[i].p1[1] = puntos[i].y;
+		triangles[i].p1[2] = puntos[i].z;
+		triangles[i].p1[3] = 1;
 
-		fscan(file,"%d",&intBuffer);
-		triangles.p2[0] = points[intBuffer].x;
-		triangles.p2[1] = points[intBuffer].y;
-		triangles.p2[2] = points[intBuffer].z;
+		//fscanf(file,"%d",&intBuffer);
+		triangles[i].p2[0] = puntos[i].x;
+		triangles[i].p2[1] = puntos[i].y;
+		triangles[i].p2[2] = puntos[i].z;
+		triangles[i].p2[3] = 1;
 
-		fscan(file,"%d",&intBuffer);
-		triangles.p3[0] = points[intBuffer].x;
-		triangles.p3[1] = points[intBuffer].y;
-		triangles.p3[2] = points[intBuffer].z;
-
-	}
+		//fscanf(file,"%d",&intBuffer);
+		triangles[i].p3[0] = puntos[i].x;
+		triangles[i].p3[1] = puntos[i].y;
+		triangles[i].p3[2] = puntos[i].z;
+		triangles[i].p3[3] = 1;
+		++i;
+	}while(fscanf(file,"%c",&charBuffer) != EOF && i<10000);
 	//Cerramos el archivo
 	fclose(file);
 }
