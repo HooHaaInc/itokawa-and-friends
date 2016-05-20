@@ -19,6 +19,9 @@ struct Trianglew
 {
 	float p1[4], p2[4], p3[4];
 };
+struct Point{
+	float x,y,z;
+};
 //Prototipos de funciones
 void mat_mul(float[16], float[], int, float[]);
 void mat_id(float[16]);
@@ -40,6 +43,7 @@ void draw_pixel(float*, int, int, float, float, float);
 //Numero de triangulos en el archivo itokawa
 int N=49152;
 struct Trianglew triangles[49152];
+Point points[7381];
 //Main
 int main(int argc, char *argv[])
 {
@@ -298,7 +302,8 @@ void setup(){
 }
 
 //Funcion para procesar los datos almacenados en los archivos
-void abrir_archivo_y_procesa(struct Trianglew tris[]){
+void abrir_archivo_y_procesa_puntos(struct Trianglew triangles[]){
+	//Lee archivos que utilizan un sistema de tres puntos
     //Declaramos las variables necesarias para procesar archivos
 	FILE *file;
 	float buff;
@@ -308,31 +313,109 @@ void abrir_archivo_y_procesa(struct Trianglew tris[]){
 	//Leemos todo el archivo
 	while(fscanf(file, "%f", &buff) != EOF){
         //Obtenemos las tres coordenadas del primer punto del triangulo
-		tris[i].p1[0] = buff;
+		triangles[i].p1[0] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p1[1] = buff;
+		triangles[i].p1[1] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p1[2] = buff;
-		tris[i].p1[3] = 1;
+		triangles[i].p1[2] = buff;
+		triangles[i].p1[3] = 1;
 		fscanf(file, "%f", &buff);
         //Hacemos lo mismo para el segundo punto
-		tris[i].p2[0] = buff;
+		triangles[i].p2[0] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p2[1] = buff;
+		triangles[i].p2[1] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p2[2] = buff;
-		tris[i].p2[3] = 1;
+		triangles[i].p2[2] = buff;
+		triangles[i].p2[3] = 1;
 		fscanf(file, "%f", &buff);
 		//Y lo mismo para el tercer punto
-		tris[i].p3[0] = buff;
+		triangles[i].p3[0] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p3[1] = buff;
+		triangles[i].p3[1] = buff;
 		fscanf(file, "%f", &buff);
-		tris[i].p3[2] = buff;
-		tris[i].p3[3] = 1;
+		triangles[i].p3[2] = buff;
+		triangles[i].p3[3] = 1;
 		fscanf(file, "%f", &buff);
 		++i;
 	}
 	//Cerramos el archivo
 	fclose(file);
 }
+void abrir_archivo_y_procesa_caras(struct Trianglew triangles[]){
+	//Lee archivos que utilizan un sistema de caras y vertices
+
+    //Declaramos las variables necesarias para procesar archivos
+	FILE *file;
+	float floatBuffer;
+	char charBuffer;
+	int intBuffer;
+	float puntos[20005];
+	//Abrimos el archivo con los puntos
+	file = fopen("OBJETOS-3D/QueSoy1.obj", "r");
+	int i=0;
+	//Leemos todo el archivo
+	while(fscanf(file, "%c", &charBuffer) != 'v'){
+        //Obtenemos las tres coordenadas del vertice
+
+		fscanf(file, "%f", &floatBuff);
+		puntos[i].x = buff;
+		fscanf(file, "%f", &floatBuff);
+		puntos[i].y = buff;
+		fscanf(file, "%f", &floatBuff);
+		puntos[i].z = buff;
+		++i;
+	}
+	i = 0;
+	//Asociamos los vertices para formar un triangulo
+	while(fscan(file,"%c",&charBuffer) != EOF){
+		fscan(file,"%d",&intBuffer)
+		triangles.p1[0] = points[intBuffer].x;
+		triangles.p1[1] = points[intBuffer].y;
+		triangles.p1[2] = points[intBuffer].z;
+
+		fscan(file,"%d",&intBuffer);
+		triangles.p2[0] = points[intBuffer].x;
+		triangles.p2[1] = points[intBuffer].y;
+		triangles.p2[2] = points[intBuffer].z;
+
+		fscan(file,"%d",&intBuffer);
+		triangles.p3[0] = points[intBuffer].x;
+		triangles.p3[1] = points[intBuffer].y;
+		triangles.p3[2] = points[intBuffer].z;
+
+	}
+	//Cerramos el archivo
+	fclose(file);
+}
+///TODO:Realmente no hace nada en este momento
+/* 
+void abrir_archivo_y_procesa_esfericos(struct Trianglew triangles[]){
+	//Lee archivos que utilizan sistema esferico de coordenadas
+    //Declaramos las variables necesarias para procesar archivos
+	FILE *file;
+	float buff;
+	//Abrimos el archivo con los puntos
+	file = fopen("OBJETOS-3D/253mathilde.tab", "r");
+	int i=0;
+	float latitude,longitude,radius;
+
+	
+	//Leemos todo el archivo
+	while(fscanf(file, "%f", &buff) != EOF){
+        //Obtenemos las tres coordenadas del primer punto del triangulo
+		latitude = buff;
+		fscanf(file,"%f",&buff);
+		longitude = buff;
+		fscanf(file,"%f",&buff);
+		radius = buff;
+		++i;
+		points[i].x = radius*sintheta(latitude)*costheta(longitude);
+		points[i].y = radius*sintheta(latitude)*sintheta(longitude);
+		points[i].z = rcos(latitude);
+
+
+	}
+	//Cerramos el archivo
+	fclose(file);
+}
+*/
